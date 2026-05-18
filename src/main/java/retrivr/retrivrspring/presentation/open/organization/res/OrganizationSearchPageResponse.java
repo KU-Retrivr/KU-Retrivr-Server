@@ -1,23 +1,26 @@
 package retrivr.retrivrspring.presentation.open.organization.res;
 
 import java.util.List;
-import retrivr.retrivrspring.mock.model.OrganizationMock;
+import retrivr.retrivrspring.domain.entity.organization.Organization;
 
 public record OrganizationSearchPageResponse(
-    List<OrganizationSummary> organizations
+    List<OrganizationSearchSummary> organizations,
+    String nextCursor
 ) {
 
-  public static OrganizationSearchPageResponse from(List<OrganizationMock> organizations) {
-    return new OrganizationSearchPageResponse(
-        organizations.stream()
-            .map(org -> new OrganizationSummary(org.id(), org.name()))
-            .toList()
-    );
-  }
-
-  public record OrganizationSummary(
-      Long id,
-      String name
+  public record OrganizationSearchSummary(
+      Long organizationId,
+      String name,
+      String imageURL
   ) {
+
+    public static OrganizationSearchSummary from(Organization organization) {
+      //todo: Organization 도메인에 img 추가 (figma 에 따라서 필요)
+      return new OrganizationSearchSummary(
+          organization.getId(),
+          organization.getName(),
+          null
+      );
+    }
   }
 }

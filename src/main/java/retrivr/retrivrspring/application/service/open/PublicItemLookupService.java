@@ -1,29 +1,75 @@
 package retrivr.retrivrspring.application.service.open;
 
+import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.stereotype.Service;
-import retrivr.retrivrspring.mock.model.ItemMock;
-import retrivr.retrivrspring.mock.store.MockDataStore;
+import org.springframework.transaction.annotation.Transactional;
+import retrivr.retrivrspring.application.vo.DefaultNormalizedCursorPageSearchSize;
+import retrivr.retrivrspring.domain.entity.item.Item;
+import retrivr.retrivrspring.domain.entity.item.ItemUnit;
+import retrivr.retrivrspring.domain.repository.item.ItemRepository;
+import retrivr.retrivrspring.domain.repository.item.ItemUnitRepository;
+import retrivr.retrivrspring.domain.repository.organization.OrganizationRepository;
+import retrivr.retrivrspring.global.error.ApplicationException;
+import retrivr.retrivrspring.global.error.ErrorCode;
 import retrivr.retrivrspring.presentation.open.item.res.PublicItemDetailResponse;
+import retrivr.retrivrspring.presentation.open.item.res.PublicItemDetailResponse.BorrowerRequirement;
+import retrivr.retrivrspring.presentation.open.item.res.PublicItemDetailResponse.PublicItemUnitSummary;
 import retrivr.retrivrspring.presentation.open.item.res.PublicItemListPageResponse;
+import retrivr.retrivrspring.presentation.open.item.res.PublicItemSummary;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PublicItemLookupService {
 
-  private final MockDataStore mockDataStore;
+  private final ItemRepository itemRepository;
+  private final ItemUnitRepository itemUnitRepository;
+  private final OrganizationRepository organizationRepository;
 
-  public PublicItemLookupService(MockDataStore mockDataStore) {
-    this.mockDataStore = mockDataStore;
-  }
+  public PublicItemListPageResponse publicOrganizationItemListLookup(Long organizationId,
+      Long cursor, int size) {
+    boolean isValidOrganization = organizationRepository.existsById(organizationId);
+    if (!isValidOrganization) {
+      throw new ApplicationException(ErrorCode.NOT_FOUND_ORGANIZATION);
+    }
 
-  public PublicItemListPageResponse publicOrganizationItemListLookup(Long organizationId) {
-    return PublicItemListPageResponse.from(
-        mockDataStore.getOrganization(organizationId),
-        mockDataStore.getItemsByOrganization(organizationId)
-    );
+    DefaultNormalizedCursorPageSearchSize normalizedSize = DefaultNormalizedCursorPageSearchSize.of(size);
+
+    List<Item> itemList = itemRepository.findPageByOrganizationWithCursor(
+        organizationId, cursor, normalizedSize.sizePlusOne());
+
+    boolean hasNext = itemList.size() > normalizedSize.size();
+    List<Item> page = hasNext ? itemList.subList(0, normalizedSize.size()) : itemList;
+
+    Long nextCursor = null;
+    if (hasNext) {
+      nextCursor = page.getLast().getId();
+    }
+
+    List<PublicItemSummary> content = page.stream()
+        .map(PublicItemSummary::from)
+        .toList();
+
+    return new PublicItemListPageResponse(organizationId, content, nextCursor);
   }
 
   public PublicItemDetailResponse publicOrganizationItemLookup(Long itemId) {
-    ItemMock item = mockDataStore.getItem(itemId);
-    return PublicItemDetailResponse.from(item);
+    Item item = itemRepository.findFetchItemBorrowerFieldsById(itemId)
+        .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_ITEM));
+    List<BorrowerRequirement> borrowerRequirements = item.getItemBorrowerFields().stream()
+        .map(BorrowerRequirement::from)
+        .toList();
+    if (!item.isUnitType()) {
+      return new PublicItemDetailResponse(List.of(), borrowerRequirements, item.getItemManagementType());
+    }
+
+    List<ItemUnit> allByItemId = itemUnitRepository.findAllByItemId(itemId);
+
+    List<PublicItemUnitSummary> list = allByItemId.stream()
+        .map(PublicItemUnitSummary::from)
+        .toList();
+
+    return new PublicItemDetailResponse(list, borrowerRequirements, item.getItemManagementType());
   }
 }

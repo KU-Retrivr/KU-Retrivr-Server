@@ -1,20 +1,12 @@
 package retrivr.retrivrspring.presentation.admin.rental.res;
 
-import retrivr.retrivrspring.mock.model.RentalMock;
+
+import retrivr.retrivrspring.domain.entity.rental.enumerate.RentalStatus;
 
 public record AdminRentalReturnResponse(
     Long rentalId,
-    String status,
-    String message,
-    String processedBy
+    RentalStatus rentalStatus,
+    String adminNameToConfirm
 ) {
 
-  public static AdminRentalReturnResponse from(RentalMock rental, String adminName) {
-    return new AdminRentalReturnResponse(
-        rental.id(),
-        rental.status().name(),
-        "반납이 완료되었습니다.",
-        adminName
-    );
-  }
 }

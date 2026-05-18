@@ -1,40 +1,52 @@
 package retrivr.retrivrspring.global.error;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(ApiException.class)
-  public ResponseEntity<ErrorResponse> handleApiException(ApiException exception) {
-    HttpStatus status = exception.getStatus();
-    return ResponseEntity.status(status)
-        .body(new ErrorResponse(status.value(), exception.getMessage(), LocalDateTime.now()));
-  }
+    /**
+     * CustomException Registration
+     */
+    @ExceptionHandler(ApplicationException.class)
+    public ResponseEntity<ErrorResponse> handleApplicationException(ApplicationException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        log.error("[ApplicationException] code={}, message={}", errorCode.getCode(), errorCode.getMessage(), e);
+        return ResponseEntity
+            .status(errorCode.getHttpStatus())
+            .body(ErrorResponse.of(errorCode, e.getDetail()));
+    }
 
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception) {
-    String message = exception.getBindingResult().getAllErrors().stream()
-        .findFirst()
-        .map(error -> error.getDefaultMessage())
-        .orElse("Validation failed");
-    return ResponseEntity.badRequest()
-        .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), message, LocalDateTime.now()));
-  }
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ErrorResponse> handleDomainException(DomainException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        log.error("[DomainException] code={}, message={}", errorCode.getCode(), errorCode.getMessage(), e);
+        return ResponseEntity
+            .status(errorCode.getHttpStatus())
+            .body(ErrorResponse.of(errorCode, e.getDetail()));
+    }
 
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception, HttpServletRequest request) {
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Unexpected error at " + request.getRequestURI(),
-            LocalDateTime.now()
-        ));
-  }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+        MethodArgumentNotValidException e
+    ) {
+        String message = e.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .findFirst()
+            .map(FieldError::getDefaultMessage)
+            .orElse("잘못된 요청입니다.");
+
+        log.error("[MethodArgumentNotValidException] message={}", message, e);
+        return ResponseEntity.badRequest()
+            .body(ErrorResponse.of(ErrorCode.BAD_REQUEST_EXCEPTION, message));
+    }
 }

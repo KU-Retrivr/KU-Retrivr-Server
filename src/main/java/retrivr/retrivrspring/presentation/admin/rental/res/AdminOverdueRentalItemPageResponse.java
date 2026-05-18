@@ -2,35 +2,48 @@ package retrivr.retrivrspring.presentation.admin.rental.res;
 
 import java.time.LocalDate;
 import java.util.List;
-import retrivr.retrivrspring.mock.model.RentalMock;
+import retrivr.retrivrspring.domain.entity.item.Item;
+import retrivr.retrivrspring.domain.entity.item.ItemUnit;
+import retrivr.retrivrspring.domain.entity.rental.Borrower;
+import retrivr.retrivrspring.domain.entity.rental.Rental;
 
 public record AdminOverdueRentalItemPageResponse(
-    List<AdminOverdueRentalItem> overdues
+    List<OverdueRentalItemSummary> rentals,
+    Long nextCursor
 ) {
 
-  public static AdminOverdueRentalItemPageResponse from(List<RentalMock> rentals) {
-    return new AdminOverdueRentalItemPageResponse(
-        rentals.stream().map(AdminOverdueRentalItem::from).toList()
-    );
-  }
-
-  public record AdminOverdueRentalItem(
+  public record OverdueRentalItemSummary(
       Long rentalId,
+      Long itemId,
       String itemName,
+      Long itemUnitId,
+      String itemUnitLabel,
       String borrowerName,
       LocalDate rentalDate,
-      LocalDate returnDate,
-      String status
+      LocalDate dueDate,
+      Integer overdueDays,
+      List<LocalDate> sendOverdueSmsDates,
+      Boolean canSendOverdueSms
   ) {
-    public static AdminOverdueRentalItem from(RentalMock rental) {
-      return new AdminOverdueRentalItem(
-          rental.id(),
-          rental.itemName(),
-          rental.borrowerName(),
-          rental.rentalDate(),
-          rental.returnDate(),
-          rental.status().name()
+
+    public static OverdueRentalItemSummary from(Rental rental) {
+      Item item = rental.getItem();
+      ItemUnit itemUnit = rental.getItemUnit();
+      Borrower borrower = rental.getBorrower();
+      return new OverdueRentalItemSummary(
+          rental.getId(),
+          item.getId(),
+          item.getName(),
+          itemUnit != null ? itemUnit.getId() : null,
+          itemUnit != null ? itemUnit.getLabel() : null,
+          borrower.getName(),
+          rental.getDecidedAt().toLocalDate(),
+          rental.getDueDate(),
+          rental.getOverdueDays(),
+          List.of(),
+          rental.canSendOverdueMessage()
       );
     }
   }
+
 }

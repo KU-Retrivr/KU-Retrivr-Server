@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/KU-Retrivr-Server.iml" filepath="$PROJECT_DIR$/.idea/KU-Retrivr-Server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/RETRIVR-SPRING.main.iml" filepath="$PROJECT_DIR$/.idea/modules/RETRIVR-SPRING.main.iml" />
     </modules>
   </component>
 </project>

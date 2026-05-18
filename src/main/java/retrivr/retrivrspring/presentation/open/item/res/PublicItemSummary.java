@@ -1,20 +1,29 @@
 package retrivr.retrivrspring.presentation.open.item.res;
 
-import retrivr.retrivrspring.mock.model.ItemMock;
+import retrivr.retrivrspring.domain.entity.item.Item;
 
 public record PublicItemSummary(
-    Long id,
+    Long itemId,
     String name,
-    int availableQuantity,
-    String status
+    Integer availableQuantity,
+    Integer totalQuantity,
+    Boolean isActive,
+    Integer rentalDuration,
+    String description,
+    String guaranteedGoods
 ) {
 
-  public static PublicItemSummary from(ItemMock item) {
+  public static PublicItemSummary from(Item item) {
     return new PublicItemSummary(
-        item.id(),
-        item.name(),
-        item.availableQuantity(),
-        item.availableQuantity() > 0 ? "AVAILABLE" : "UNAVAILABLE"
+        item.getId(),
+        item.getName(),
+        item.getAvailableQuantity(),
+        item.getTotalQuantity(),
+        item.isActive(),
+        item.getRentalDuration(),
+        item.getDescription(),
+        item.getGuaranteedGoods()
     );
+
   }
 }
