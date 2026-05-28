@@ -6,25 +6,15 @@ case "$1" in
     ./gradlew bootJar
     ;;
   up)
-    docker compose up -d
+    ./gradlew bootRun
     ;;
   rebuild)
-    ./gradlew bootJar
-    docker compose up -d --build
-    ;;
-  down)
-    docker compose down
-    ;;
-  logs)
-    docker compose logs -f app
-    ;;
-  prune)
-    docker builder prune -f
+    ./gradlew clean bootRun
     ;;
   clean)
-    docker system prune -f
+    ./gradlew clean
     ;;
   *)
-    echo "Usage: ./execute.sh {build|up|rebuild|down|logs|prune|clean}"
+    echo "Usage: ./execute.sh {build|up|rebuild|clean}"
     ;;
 esac

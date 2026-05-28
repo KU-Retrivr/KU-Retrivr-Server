@@ -26,7 +26,6 @@ KU-Retrivr-Server는 교내 및 단체 대여 물품 관리를 위한 백엔드 
 - Spring Mail
 - Swagger / springdoc-openapi
 - Gradle
-- Docker
 
 ## 주요 기능
 
@@ -132,12 +131,6 @@ Windows:
 
 ```powershell
 .\gradlew.bat test
-```
-
-### 5. Docker 실행
-
-```bash
-docker compose up -d --build
 ```
 
 ## API 문서
