@@ -1,33 +1,36 @@
 package retrivr.retrivrspring.presentation.open.rental.res;
 
 import java.time.LocalDate;
-import retrivr.retrivrspring.mock.model.RentalMock;
+import java.time.LocalDateTime;
+import java.util.Map;
+import retrivr.retrivrspring.domain.entity.rental.Rental;
+import retrivr.retrivrspring.domain.entity.rental.enumerate.RentalStatus;
 
 public record PublicRentalDetailResponse(
     Long rentalId,
+    RentalStatus rentalStatus,
     String itemName,
-    String borrowerName,
-    String borrowerPhone,
-    String organization,
-    String purpose,
-    String status,
-    LocalDate rentalDate,
-    LocalDate returnDate,
-    String decisionReason
+    String itemUnitLabel,
+    Map<String, String> borrowerField,
+    LocalDateTime decidedAt,
+    LocalDate dueDate
 ) {
 
-  public static PublicRentalDetailResponse from(RentalMock rental) {
+  public static PublicRentalDetailResponse from(
+      Rental rental,
+      String itemName,
+      String itemUnitLabel,
+      Map<String, String> borrowerField
+  ) {
     return new PublicRentalDetailResponse(
-        rental.id(),
-        rental.itemName(),
-        rental.borrowerName(),
-        rental.borrowerPhone(),
-        rental.borrowerOrganization(),
-        rental.purpose(),
-        rental.status().name(),
-        rental.rentalDate(),
-        rental.returnDate(),
-        rental.decisionReason()
+        rental.getId(),
+        rental.getStatus(),
+        itemName,
+        itemUnitLabel,
+        borrowerField,
+        rental.getDecidedAt(),
+        rental.getDueDate()
     );
   }
+
 }

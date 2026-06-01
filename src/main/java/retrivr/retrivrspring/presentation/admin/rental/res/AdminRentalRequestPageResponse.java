@@ -1,36 +1,53 @@
 package retrivr.retrivrspring.presentation.admin.rental.res;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-import retrivr.retrivrspring.mock.model.RentalMock;
+import retrivr.retrivrspring.domain.entity.item.Item;
+import retrivr.retrivrspring.domain.entity.item.ItemUnit;
+import retrivr.retrivrspring.domain.entity.rental.Borrower;
+import retrivr.retrivrspring.domain.entity.rental.Rental;
 
 public record AdminRentalRequestPageResponse(
-    List<AdminRentalRequestSummary> requests
+    List<RentalRequestSummary> requests,
+    Long nextCursor
 ) {
 
-  public static AdminRentalRequestPageResponse from(List<RentalMock> rentals) {
-    return new AdminRentalRequestPageResponse(
-        rentals.stream().map(AdminRentalRequestSummary::from).toList()
-    );
-  }
-
-  public record AdminRentalRequestSummary(
+  public record RentalRequestSummary(
       Long rentalId,
+      Long itemId,
       String itemName,
+      Long itemUnitId,
+      String itemUnitLabel,
+      Integer totalQuantity,
+      Integer availableQuantity,
       String borrowerName,
-      String status,
-      LocalDate rentalDate,
-      LocalDate returnDate
+      String guaranteedGoods,
+      LocalDateTime requestedAt
   ) {
-    public static AdminRentalRequestSummary from(RentalMock rental) {
-      return new AdminRentalRequestSummary(
-          rental.id(),
-          rental.itemName(),
-          rental.borrowerName(),
-          rental.status().name(),
-          rental.rentalDate(),
-          rental.returnDate()
+
+    public static RentalRequestSummary from(Rental rental) {
+      //todo: 장바구니 로직 구현 시 getFirst 삭제
+      Item item = rental.getItem();
+      ItemUnit itemUnit = null;
+      if (rental.hasItemUnit()) {
+        itemUnit = rental.getRentalItemUnits().getFirst().getItemUnit();
+      }
+      Borrower borrower = rental.getBorrower();
+
+      return new RentalRequestSummary(
+          rental.getId(),
+          item.getId(),
+          item.getName(),
+          itemUnit != null? itemUnit.getId() : null,
+          itemUnit != null? itemUnit.getLabel() : null,
+          item.getTotalQuantity(),
+          item.getAvailableQuantity(),
+          borrower.getName(),
+          item.getGuaranteedGoods(),
+          rental.getRequestedAt()
       );
     }
+
   }
+
 }

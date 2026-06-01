@@ -1,28 +1,42 @@
 package retrivr.retrivrspring.presentation.open.item.res;
 
-import retrivr.retrivrspring.mock.model.ItemMock;
+import java.util.List;
+import retrivr.retrivrspring.domain.entity.item.ItemBorrowerField;
+import retrivr.retrivrspring.domain.entity.item.ItemUnit;
+import retrivr.retrivrspring.domain.entity.item.enumerate.ItemManagementType;
+import retrivr.retrivrspring.domain.entity.item.enumerate.ItemUnitStatus;
 
 public record PublicItemDetailResponse(
-    Long id,
-    String name,
-    String description,
-    Long organizationId,
-    String organizationName,
-    int totalQuantity,
-    int availableQuantity,
-    String status
+    List<PublicItemUnitSummary> itemUnits,
+    List<BorrowerRequirement> borrowerRequirements,
+    ItemManagementType itemManagementType
 ) {
 
-  public static PublicItemDetailResponse from(ItemMock item) {
-    return new PublicItemDetailResponse(
-        item.id(),
-        item.name(),
-        item.description(),
-        item.organizationId(),
-        item.organizationName(),
-        item.totalQuantity(),
-        item.availableQuantity(),
-        item.availableQuantity() > 0 ? "AVAILABLE" : "UNAVAILABLE"
-    );
+  public record PublicItemUnitSummary(
+      Long itemUnitId,
+      String label,
+      ItemUnitStatus status
+  ) {
+
+    public static PublicItemUnitSummary from(ItemUnit itemUnit) {
+      return new PublicItemUnitSummary(
+          itemUnit.getId(),
+          itemUnit.getLabel(),
+          itemUnit.getStatus()
+      );
+    }
+  }
+
+  public record BorrowerRequirement(
+      String label,
+      boolean required
+  ) {
+
+    public static BorrowerRequirement from(ItemBorrowerField itemBorrowerField) {
+      return new BorrowerRequirement(
+          itemBorrowerField.getLabel(),
+          itemBorrowerField.isRequired()
+      );
+    }
   }
 }

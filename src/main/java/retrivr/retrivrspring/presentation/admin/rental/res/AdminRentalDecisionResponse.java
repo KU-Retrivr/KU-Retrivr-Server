@@ -1,29 +1,13 @@
 package retrivr.retrivrspring.presentation.admin.rental.res;
 
-import retrivr.retrivrspring.mock.model.RentalMock;
+import java.time.LocalDateTime;
+import retrivr.retrivrspring.domain.entity.rental.enumerate.RentalDecisionStatus;
 
 public record AdminRentalDecisionResponse(
     Long rentalId,
-    String status,
-    String message,
-    String processedBy
+    RentalDecisionStatus rentalDecisionStatus,
+    String adminNameToDecide,
+    LocalDateTime decisionDate
 ) {
 
-  public static AdminRentalDecisionResponse approved(RentalMock rental, String adminName) {
-    return new AdminRentalDecisionResponse(
-        rental.id(),
-        rental.status().name(),
-        "대여가 승인되었습니다.",
-        adminName
-    );
-  }
-
-  public static AdminRentalDecisionResponse rejected(RentalMock rental, String adminName) {
-    return new AdminRentalDecisionResponse(
-        rental.id(),
-        rental.status().name(),
-        "대여 요청이 거절되었습니다.",
-        adminName
-    );
-  }
 }
